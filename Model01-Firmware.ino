@@ -17,11 +17,11 @@
 #include "Kaleidoscope.h"
 
 // Support for storing the keymap in EEPROM
-#include "Kaleidoscope-EEPROM-Settings.h"
-#include "Kaleidoscope-EEPROM-Keymap.h"
+// #include "Kaleidoscope-EEPROM-Settings.h"
+// #include "Kaleidoscope-EEPROM-Keymap.h"
 
 // Support for communicating with the host via a simple Serial protocol
-#include "Kaleidoscope-FocusSerial.h"
+// #include "Kaleidoscope-FocusSerial.h"
 
 // Support for keys that move the mouse
 #include "Kaleidoscope-MouseKeys.h"
@@ -55,10 +55,10 @@
 #include "Kaleidoscope-LED-Stalker.h"
 
 // Support for an LED mode that prints the keys you press in letters 4px high
-#include "Kaleidoscope-LED-AlphaSquare.h"
+// #include "Kaleidoscope-LED-AlphaSquare.h"
 
 // Support for an LED mode that lets one configure per-layer color maps
-#include "Kaleidoscope-Colormap.h"
+// #include "Kaleidoscope-Colormap.h"
 
 // Support for Keyboardio's internal keyboard testing mode
 #include "Kaleidoscope-Model01-TestMode.h"
@@ -71,6 +71,21 @@
 
 // Support for USB quirks, like changing the key state report protocol
 #include "Kaleidoscope-USB-Quirks.h"
+
+// Support for the LED mode that tracks key frequency.
+// #include "Kaleidoscope-Heatmap.h"
+
+// Support for "OneShot" tappable modifiers:
+#include <Kaleidoscope-OneShot.h>
+
+// Support for "Escape-OneShot" which resets all OneShot modifiers:
+#include <Kaleidoscope-Escape-OneShot.h>
+
+// Support for LED Active Mod Color, which lights up active mod keys
+#include <Kaleidoscope-LED-ActiveModColor.h>
+
+// Invert the number keys on dvorak for something like programmer. Maybe.
+//#include <Kaleidoscope-TopsyTurvy.h>
 
 /** This 'enum' is a list of all the macros used by the Model 01's firmware
   * The names aren't particularly important. What is important is that each
@@ -86,7 +101,9 @@
   */
 
 enum { MACRO_VERSION_INFO,
-       MACRO_ANY
+       MACRO_ANY,
+       SWITCH_PRIMARY,
+       SWITCH_DONRAK,
      };
 
 
@@ -139,8 +156,7 @@ enum { MACRO_VERSION_INFO,
   *
   */
 
-enum { PRIMARY, NUMPAD, FUNCTION }; // layers
-
+enum { PRIMARY, DONRAK, NUMPAD , FUNCTION}; // layers
 
 /**
   * To change your keyboard's layout from QWERTY to DVORAK or COLEMAK, comment out the line
@@ -175,14 +191,14 @@ KEYMAPS(
    Key_Backtick, Key_Q, Key_W, Key_E, Key_R, Key_T, Key_Tab,
    Key_PageUp,   Key_A, Key_S, Key_D, Key_F, Key_G,
    Key_PageDown, Key_Z, Key_X, Key_C, Key_V, Key_B, Key_Escape,
-   Key_LeftControl, Key_Backspace, Key_LeftGui, Key_LeftShift,
+   Key_LeftControl, Key_Backspace, Key_LeftAlt, OSM(LeftShift),
    ShiftToLayer(FUNCTION),
 
-   M(MACRO_ANY),  Key_6, Key_7, Key_8,     Key_9,         Key_0,         LockLayer(NUMPAD),
+   M(SWITCH_DONRAK),  Key_6, Key_7, Key_8,     Key_9,         Key_0,         LockLayer(NUMPAD),
    Key_Enter,     Key_Y, Key_U, Key_I,     Key_O,         Key_P,         Key_Equals,
                   Key_H, Key_J, Key_K,     Key_L,         Key_Semicolon, Key_Quote,
-   Key_RightAlt,  Key_N, Key_M, Key_Comma, Key_Period,    Key_Slash,     Key_Minus,
-   Key_RightShift, Key_LeftAlt, Key_Spacebar, Key_RightControl,
+   Key_Tab,       Key_N, Key_M, Key_Comma, Key_Period,    Key_Slash,     Key_Minus,
+   OSM(RightShift), Key_LeftGui, Key_Spacebar, Key_RightControl,
    ShiftToLayer(FUNCTION)),
 
 #elif defined (PRIMARY_KEYMAP_DVORAK)
@@ -244,6 +260,21 @@ KEYMAPS(
 
 
 
+  [DONRAK] = KEYMAP_STACKED
+  (___,     Key_1, Key_2, Key_3, Key_4, Key_5, ___,
+   ___, Key_Quote, Key_Comma, Key_Period, Key_P, Key_Y, ___,
+   ___,   Key_A, Key_O, Key_E, Key_I, Key_U,
+   ___, Key_Semicolon, Key_Q, Key_J, Key_K, Key_X, ___,
+   ___, ___, ___, ___,
+   ___,
+
+   M(SWITCH_PRIMARY),  Key_6, Key_7, Key_8,     Key_9,         Key_0,         ___,
+   ___,     Key_F, Key_G, Key_L,     Key_R,         Key_C,         Key_Slash,
+                  Key_D, Key_H, Key_T,     Key_N,         Key_S, Key_Minus,
+   ___,       Key_B, Key_M, Key_W, Key_V,    Key_Z,     Key_Equals,
+   ___, ___, ___, ___,
+   ___),
+
   [NUMPAD] =  KEYMAP_STACKED
   (___, ___, ___, ___, ___, ___, ___,
    ___, ___, ___, ___, ___, ___, ___,
@@ -252,10 +283,10 @@ KEYMAPS(
    ___, ___, ___, ___,
    ___,
 
-   M(MACRO_VERSION_INFO),  ___, Key_7, Key_8,      Key_9,              Key_KeypadSubtract, ___,
-   ___,                    ___, Key_4, Key_5,      Key_6,              Key_KeypadAdd,      ___,
-                           ___, Key_1, Key_2,      Key_3,              Key_Equals,         ___,
-   ___,                    ___, Key_0, Key_Period, Key_KeypadMultiply, Key_KeypadDivide,   Key_Enter,
+   M(MACRO_VERSION_INFO),  ___, Key_Keypad7, Key_Keypad8,   Key_Keypad9,        Key_KeypadSubtract, ___,
+   ___,                    ___, Key_Keypad4, Key_Keypad5,   Key_Keypad6,        Key_KeypadAdd,      ___,
+                           ___, Key_Keypad1, Key_Keypad2,   Key_Keypad3,        Key_Equals,         ___,
+   ___,                    ___, Key_Keypad0, Key_KeypadDot, Key_KeypadMultiply, Key_KeypadDivide,   Key_Enter,
    ___, ___, ___, ___,
    ___),
 
@@ -333,6 +364,18 @@ const macro_t *macroAction(uint8_t macroIndex, uint8_t keyState) {
   case MACRO_ANY:
     anyKeyMacro(keyState);
     break;
+
+  case SWITCH_DONRAK:
+    if (keyToggledOff(keyState)) {
+      Layer.move(DONRAK);
+    }
+    break;
+
+  case SWITCH_PRIMARY:
+    if (keyToggledOff(keyState)) {
+      Layer.move(PRIMARY);
+    }
+    break;
   }
   return MACRO_NONE;
 }
@@ -351,6 +394,12 @@ static kaleidoscope::plugin::LEDSolidColor solidGreen(0, 160, 0);
 static kaleidoscope::plugin::LEDSolidColor solidBlue(0, 70, 130);
 static kaleidoscope::plugin::LEDSolidColor solidIndigo(0, 0, 170);
 static kaleidoscope::plugin::LEDSolidColor solidViolet(130, 0, 120);
+// static const cRGB heat_colors[] PROGMEM = {
+//   {  0,   0,   0}, // black
+//   {255,  25,  25}, // blue
+//   { 25, 255,  25}, // green
+//   { 25,  25, 255}  // red
+// };
 
 /** toggleLedsOnSuspendResume toggles the LEDs off when the host goes to sleep,
  * and turns them back on when it wakes up.
@@ -379,6 +428,19 @@ void hostPowerManagementEventHandler(kaleidoscope::plugin::HostPowerManagement::
   toggleLedsOnSuspendResume(event);
 }
 
+/** This 'enum' is a list of all the magic combos used by the Model 01's
+ * firmware The names aren't particularly important. What is important is that
+ * each is unique.
+ *
+ * These are the names of your magic combos. They will be used by the
+ * `USE_MAGIC_COMBOS` call below.
+ */
+enum {
+  // Toggle between Boot (6-key rollover; for BIOSes and early boot) and NKRO
+  // mode.
+  COMBO_TOGGLE_NKRO_MODE
+};
+
 /** A tiny wrapper, to be used by MagicCombo.
  * This simply toggles the keyboard protocol via USBQuirks, and wraps it within
  * a function with an unused argument, to match what MagicCombo expects.
@@ -401,21 +463,21 @@ USE_MAGIC_COMBOS({.action = toggleKeyboardProtocol,
 KALEIDOSCOPE_INIT_PLUGINS(
   // The EEPROMSettings & EEPROMKeymap plugins make it possible to have an
   // editable keymap in EEPROM.
-  EEPROMSettings,
-  EEPROMKeymap,
+  // EEPROMSettings,
+  // EEPROMKeymap,
 
   // Focus allows bi-directional communication with the host, and is the
   // interface through which the keymap in EEPROM can be edited.
-  Focus,
+  // Focus,
 
   // FocusSettingsCommand adds a few Focus commands, intended to aid in
   // changing some settings of the keyboard, such as the default layer (via the
   // `settings.defaultLayer` command)
-  FocusSettingsCommand,
+  // FocusSettingsCommand,
 
   // FocusEEPROMCommand adds a set of Focus commands, which are very helpful in
   // both debugging, and in backing up one's EEPROM contents.
-  FocusEEPROMCommand,
+  // FocusEEPROMCommand,
 
   // The boot greeting effect pulses the LED button for 10 seconds after the
   // keyboard is first connected
@@ -444,20 +506,30 @@ KALEIDOSCOPE_INIT_PLUGINS(
   LEDChaseEffect,
 
   // These static effects turn your keyboard's LEDs a variety of colors
-  solidRed, solidOrange, solidYellow, solidGreen, solidBlue, solidIndigo, solidViolet,
+  // solidRed, solidOrange, solidYellow, solidGreen, solidBlue, solidIndigo, solidViolet,
 
   // The breathe effect slowly pulses all of the LEDs on your keyboard
   LEDBreatheEffect,
 
   // The AlphaSquare effect prints each character you type, using your
   // keyboard's LEDs as a display
-  AlphaSquareEffect,
+  // AlphaSquareEffect,
 
   // The stalker effect lights up the keys you've pressed recently
   StalkerEffect,
 
   // The Colormap effect makes it possible to set up per-layer colormaps
-  ColormapEffect,
+  // ColormapEffect,
+
+  // The OneShot macro allows for modifier keys to be tapped and remain active until
+  // the next keypress, rather than requiring chording.
+  OneShot,
+
+  // EscapeOneShot resets all active OneShots.
+  EscapeOneShot,
+
+  // ActiveModColor lights up the LED's of active modifier keys
+  ActiveModColorEffect,
 
   // The numpad plugin is responsible for lighting up the 'numpad' mode
   // with a custom LED effect
@@ -497,8 +569,11 @@ void setup() {
   // needs to be explicitly told which keymap layer is your numpad layer
   NumPad.numPadLayer = NUMPAD;
 
+  // Shorten the timeout for oneshot keys.
+  OneShot.hold_time_out = 100;
+
   // We configure the AlphaSquare effect to use RED letters
-  AlphaSquare.color = CRGB(255, 0, 0);
+  // AlphaSquare.color = CRGB(255, 0, 0);
 
   // We set the brightness of the rainbow effects to 150 (on a scale of 0-255)
   // This draws more than 500mA, but looks much nicer than a dimmer effect
@@ -508,24 +583,28 @@ void setup() {
   // The LED Stalker mode has a few effects. The one we like is called
   // 'BlazingTrail'. For details on other options, see
   // https://github.com/keyboardio/Kaleidoscope/blob/master/doc/plugin/LED-Stalker.md
-  StalkerEffect.variant = STALKER(BlazingTrail);
+  StalkerEffect.variant = STALKER(Rainbow);
 
   // We want to make sure that the firmware starts with LED effects off
   // This avoids over-taxing devices that don't have a lot of power to share
   // with USB devices
   LEDOff.activate();
 
+  // Nevermind that comment above, start with stalker mode!
+  StalkerEffect.activate();
+
   // To make the keymap editable without flashing new firmware, we store
   // additional layers in EEPROM. For now, we reserve space for five layers. If
   // one wants to use these layers, just set the default layer to one in EEPROM,
   // by using the `settings.defaultLayer` Focus command, or by using the
   // `keymap.onlyCustom` command to use EEPROM layers only.
-  EEPROMKeymap.setup(5);
+  // EEPROMKeymap.setup(2);
 
   // We need to tell the Colormap plugin how many layers we want to have custom
   // maps for. To make things simple, we set it to five layers, which is how
   // many editable layers we have (see above).
-  ColormapEffect.max_layers(5);
+  // ColormapEffect.max_layers(2);
+  // ColormapEffect.activate();
 }
 
 /** loop is the second of the standard Arduino sketch functions.
